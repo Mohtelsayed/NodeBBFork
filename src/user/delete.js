@@ -209,11 +209,14 @@ module.exports = function (User) {
 		]);
 
 		async function updateCount(uids, name, fieldName) {
+			const mapUidsFunc = uid => name + uid;
+			const mapCountsFunc = (count, index) => ([`user:${uids[index]}`,
+				{ [fieldName]: count || 0 }]);
 			await batch.processArray(uids, async (uids) => {
-				const counts = await db.sortedSetsCard(uids.map(uid => name + uid));
-				const bulkSet = counts.map(
-					(count, index) => ([`user:${uids[index]}`, { [fieldName]: count || 0 }])
-				);
+				const mappeduids = uids.map(mapUidsFunc);
+				const counts = await db.sortedSetsCard(mappeduids);
+				console.log('MOHAMED_ELSAYED');
+				const bulkSet = counts.map(mapCountsFunc);
 				await db.setObjectBulk(bulkSet);
 			}, {
 				batch: 500,
